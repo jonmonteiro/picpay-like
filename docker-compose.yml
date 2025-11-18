@@ -1,0 +1,17 @@
+services:
+
+  app-db:
+    image: postgres:18
+    container_name: app-db
+    environment:
+      POSTGRES_DB: app
+      POSTGRES_USER: pay
+      POSTGRES_PASSWORD: pay
+    ports:
+      - "5432:5432"
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
