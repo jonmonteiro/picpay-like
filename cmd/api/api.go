@@ -8,9 +8,9 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 
-	"github.com/jmonteiro/picpay-like/core/domain/user"
-	"github.com/jmonteiro/picpay-like/core/domain/wallet"
-	"github.com/jmonteiro/picpay-like/core/domain/transaction"
+	userHandler "github.com/jmonteiro/picpay-like/core/handler/user"
+	userRepo "github.com/jmonteiro/picpay-like/core/repository/user"
+	userService "github.com/jmonteiro/picpay-like/core/service/user"
 )
 
 type APIServer struct {
@@ -33,23 +33,19 @@ func (s *APIServer) Run() error {
 	r.Use(middleware.Recoverer)
 	r.Use(middleware.RequestID)
 
-	// Prefixo da API
 	r.Route("/api/v1", func(api chi.Router) {
 
 		// ===== USER =====
-		userStore := user.NewStore(s.db)
-		userHandler := user.NewHandler(userStore)
-		userHandler.RegisterRoutes(api)
+		userStore := userRepo.NewStore(s.db)
+		userSvc := userService.NewUserService(userStore)
+		userHdlr := userHandler.NewHandler(userSvc)
+		userHdlr.RegisterRoutes(api)
 
 		// ===== WALLET =====
-		walletStore := wallet.NewStore(s.db)
-		walletHandler := wallet.NewHandler(walletStore, userStore)
-		walletHandler.RegisterRoutes(api)
+		// TODO: Implementar wallet handler
 
 		// ===== TRANSACTION =====
-		transactionStore := transaction.NewStore(s.db)
-		transactionHandler := transaction.NewHandler(transactionStore, walletStore, userStore)
-		transactionHandler.RegisterRoutes(api)
+		// TODO: Implementar transaction handler
 	})
 
 	// Servir arquivos estáticos (opcional)

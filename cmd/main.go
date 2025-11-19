@@ -13,9 +13,10 @@ import (
 func main() {
 	// Monta connection string do PostgreSQL
 	connStr := fmt.Sprintf(
-		"postgres://%s:%s@%s/%s?sslmode=disable",
+		"postgres://%s:%s@%s:%s/%s?sslmode=disable",
 		config.Envs.DBUser,
 		config.Envs.DBPassword,
+		config.Envs.DBHost,
 		config.Envs.DBPort,
 		config.Envs.DBName,
 	)
