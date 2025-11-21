@@ -34,7 +34,7 @@ func (s *APIServer) Run() error {
 		// ===== USER =====
 		userStore := user.NewStore(s.db)
 		userSvc := user.NewUserService(userStore)
-		userHdlr := user.NewHandler(userSvc, userStore)
+		userHdlr := user.NewHandler(userSvc)
 		userHdlr.RegisterRoutes(api)
 
 		// ===== WALLET =====

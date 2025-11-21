@@ -18,21 +18,17 @@ func NewUserService(store types.UserStore) *UserService {
 	}
 }
 
-// RegisterUser contém a lógica de negócio para registrar um novo usuário
 func (s *UserService) RegisterUser(payload types.RegisterUserPayload) error {
-	// Verifica se o usuário já existe
 	_, err := s.store.GetUserByEmail(payload.Email)
 	if err == nil {
 		return fmt.Errorf("user with email %s already exists", payload.Email)
 	}
 
-	// Hash da senha
 	hashedPassword, err := auth.HashPassword(payload.Password)
 	if err != nil {
 		return fmt.Errorf("failed to hash password: %w", err)
 	}
 
-	// Cria o usuário
 	user := types.User{
 		Email:    payload.Email,
 		Password: hashedPassword,
@@ -46,20 +42,16 @@ func (s *UserService) RegisterUser(payload types.RegisterUserPayload) error {
 	return nil
 }
 
-// LoginUser contém a lógica de negócio para autenticar um usuário
 func (s *UserService) LoginUser(payload types.LoginUserPayload) (string, error) {
-	// Busca o usuário pelo email
 	u, err := s.store.GetUserByEmail(payload.Email)
 	if err != nil {
 		return "", fmt.Errorf("invalid email or password")
 	}
 
-	// Compara as senhas
 	if !auth.ComparePasswords(u.Password, []byte(payload.Password)) {
 		return "", fmt.Errorf("invalid email or password")
 	}
 
-	// Cria o token JWT
 	secret := []byte(config.Envs.JWTSecret)
 	token, err := auth.CreateJWT(secret, int(u.ID))
 	if err != nil {
@@ -67,4 +59,40 @@ func (s *UserService) LoginUser(payload types.LoginUserPayload) (string, error) 
 	}
 
 	return token, nil
+}
+
+func (s *UserService) GetUsers() ([]*types.User, error) {
+	users, err := s.store.GetUsers()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get users: %w", err)
+	}
+	return users, nil
+}
+
+func (s *UserService) GetUserByID(id int) (*types.User, error) {
+	user, err := s.store.GetUserByID(id)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get user by ID: %w", err)
+	}
+	return user, nil
+}
+
+func (s *UserService) DeleteUser(id int) error {
+	err := s.store.DeleteUser(id)
+	if err != nil {
+		return fmt.Errorf("failed to delete user: %w", err)
+	}
+	return nil
+}
+
+func (s *UserService) UpdateUser(id int, payload types.RegisterUserPayload) error {	
+	_, err := s.store.GetUserByID(id)
+	if err != nil {
+		return fmt.Errorf("user not found: %w", err)
+	}
+	err = s.store.UpdateUser(payload, id)
+	if err != nil {
+		return fmt.Errorf("failed to update user: %w", err)
+	}
+	return nil
 }
