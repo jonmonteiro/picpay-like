@@ -90,6 +90,17 @@ func (s *UserService) UpdateUser(id int, payload types.RegisterUserPayload) erro
 	if err != nil {
 		return fmt.Errorf("user not found: %w", err)
 	}
+
+	hashedPassword, err := auth.HashPassword(payload.Password)
+	if err != nil {
+		return fmt.Errorf("failed to hash password: %w", err)
+	}
+
+	payload = types.RegisterUserPayload{
+		Email:    payload.Email,
+		Password: hashedPassword,
+	}
+	
 	err = s.store.UpdateUser(payload, id)
 	if err != nil {
 		return fmt.Errorf("failed to update user: %w", err)
