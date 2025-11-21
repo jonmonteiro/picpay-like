@@ -37,10 +37,11 @@ func (s *Store) GetUserByID(id int) (*types.User, error) {
 }
 
 func (s *Store) GetUserByEmail(email string) (*types.User, error) {
-	rows, err := s.db.Query("SELECT * FROM users WHERE email = $1", email)
+	rows, err := s.db.Query("SELECT id, email, password FROM users WHERE email = $1", email)
 	if err != nil {
 		return nil, err
 	}
+	defer rows.Close()
 
 	u := new(types.User)
 	for rows.Next() {

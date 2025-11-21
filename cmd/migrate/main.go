@@ -73,4 +73,17 @@ func main() {
 		}
 		log.Println("Migration DOWN executada com sucesso!")
 	}
+
+	if cmd == "force" {
+		if len(os.Args) < 3 {
+			log.Fatal("Uso: go run cmd/migrate/main.go force <version>")
+		}
+		version := os.Args[2]
+		var forceVersion int
+		fmt.Sscanf(version, "%d", &forceVersion)
+		if err := m.Force(forceVersion); err != nil {
+			log.Fatal(err)
+		}
+		log.Printf("Forçada versão %d com sucesso!", forceVersion)
+	}
 }

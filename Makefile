@@ -32,6 +32,14 @@ migrate-up: ## Executa todas as migrations pendentes
 migrate-down: ## Reverte a última migration
 	@go run cmd/migrate/main.go down
 
+migrate-force: ## Força uma versão específica (uso: make migrate-force version=1)
+	@if [ -z "$(version)" ]; then \
+		echo "❌ Erro: Especifique a versão"; \
+		echo "Uso: make migrate-force version=1"; \
+		exit 1; \
+	fi
+	@go run cmd/migrate/main.go force $(version)
+
 migrate-status: ## Mostra o status das migrations
 	@go run cmd/migrate/main.go status || true
 

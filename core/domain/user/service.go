@@ -3,8 +3,9 @@ package user
 import (
 	"fmt"
 
+	"github.com/jmonteiro/picpay-like/core/config"
+	"github.com/jmonteiro/picpay-like/core/domain/auth"
 	"github.com/jmonteiro/picpay-like/core/types"
-	"github.com/jmonteiro/picpay-like/core/utils"
 )
 
 type UserService struct {
@@ -26,7 +27,7 @@ func (s *UserService) RegisterUser(payload types.RegisterUserPayload) error {
 	}
 
 	// Hash da senha
-	hashedPassword, err := utils.HashPassword(payload.Password)
+	hashedPassword, err := auth.HashPassword(payload.Password)
 	if err != nil {
 		return fmt.Errorf("failed to hash password: %w", err)
 	}
@@ -43,4 +44,27 @@ func (s *UserService) RegisterUser(payload types.RegisterUserPayload) error {
 	}
 
 	return nil
+}
+
+// LoginUser contém a lógica de negócio para autenticar um usuário
+func (s *UserService) LoginUser(payload types.LoginUserPayload) (string, error) {
+	// Busca o usuário pelo email
+	u, err := s.store.GetUserByEmail(payload.Email)
+	if err != nil {
+		return "", fmt.Errorf("invalid email or password")
+	}
+
+	// Compara as senhas
+	if !auth.ComparePasswords(u.Password, []byte(payload.Password)) {
+		return "", fmt.Errorf("invalid email or password")
+	}
+
+	// Cria o token JWT
+	secret := []byte(config.Envs.JWTSecret)
+	token, err := auth.CreateJWT(secret, int(u.ID))
+	if err != nil {
+		return "", fmt.Errorf("failed to create token: %w", err)
+	}
+
+	return token, nil
 }

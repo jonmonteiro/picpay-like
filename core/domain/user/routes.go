@@ -6,7 +6,6 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-playground/validator"
-	"github.com/jmonteiro/picpay-like/core/config"
 	"github.com/jmonteiro/picpay-like/core/types"
 	"github.com/jmonteiro/picpay-like/core/utils"
 )
@@ -27,7 +26,7 @@ func NewHandler(userService *UserService, store types.UserStore) *Handler {
 func (h *Handler) RegisterRoutes(r chi.Router) {
 	r.Route("/users", func(r chi.Router) {
 		r.Post("/register", h.handleRegister) // POST /api/v1/users
-		//r.Post("/login", h.handleCreateUser)
+		r.Post("/login", h.handleLogin)
 		//r.Get("/", h.handleListUsers)   // GET /api/v1/users
 		//r.Get("/{id}", h.handleGetUser) // GET /api/v1/users/:id
 	})
@@ -69,21 +68,9 @@ func (h *Handler) handleLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	u, err := h.store.GetUserByEmail(user.Email)
+	token, err := h.userService.LoginUser(user)
 	if err != nil {
-		utils.WriteError(w, http.StatusBadRequest, fmt.Errorf("not found, invalid email or password"))
-		return
-	}
-
-	if !utils.ComparePasswords(u.Password, []byte(user.Password)) {
-		utils.WriteError(w, http.StatusBadRequest, fmt.Errorf("invalid email or password"))
-		return
-	}
-
-	secret := []byte(config.Envs.JWTSecret)
-	token, err := utils.CreateJWT(secret, int(u.ID))
-	if err != nil {
-		utils.WriteError(w, http.StatusInternalServerError, err)
+		utils.WriteError(w, http.StatusUnauthorized, err)
 		return
 	}
 
