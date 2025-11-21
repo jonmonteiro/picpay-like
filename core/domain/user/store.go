@@ -1,21 +1,21 @@
-package repository
+package user
 
 import (
 	"database/sql"
 	"fmt"
 
-	"github.com/jmonteiro/picpay-like/core/domain/user"
+	"github.com/jmonteiro/picpay-like/core/types"
 )
 
 type Store struct {
 	db *sql.DB
 }
 
-func NewStore(db *sql.DB) domain.UserStore {
+func NewStore(db *sql.DB) types.UserStore {
 	return &Store{db: db}
 }
 
-func (s *Store) CreateUser(user domain.User) error {
+func (s *Store) CreateUser(user types.User) error {
 	_, err := s.db.Exec("INSERT INTO users (email, password) VALUES ($1, $2)", user.Email, user.Password)
 	if err != nil {
 		return err
@@ -24,10 +24,10 @@ func (s *Store) CreateUser(user domain.User) error {
 	return nil
 }
 
-func (s *Store) GetUserByID(id int) (*domain.User, error) {
+func (s *Store) GetUserByID(id int) (*types.User, error) {
 	row := s.db.QueryRow(`SELECT id, email, password FROM users WHERE id=$1`, id)
 
-	var u domain.User
+	var u types.User
 	err := row.Scan(&u.ID, &u.Email, &u.Password)
 	if err != nil {
 		return nil, err
@@ -36,13 +36,13 @@ func (s *Store) GetUserByID(id int) (*domain.User, error) {
 	return &u, nil
 }
 
-func (s *Store) GetUserByEmail(email string) (*domain.User, error) {
+func (s *Store) GetUserByEmail(email string) (*types.User, error) {
 	rows, err := s.db.Query("SELECT * FROM users WHERE email = $1", email)
 	if err != nil {
 		return nil, err
 	}
 
-	u := new(domain.User)
+	u := new(types.User)
 	for rows.Next() {
 		u, err = scanRowsIntoUser(rows)
 		if err != nil {
@@ -57,16 +57,16 @@ func (s *Store) GetUserByEmail(email string) (*domain.User, error) {
 	return u, nil
 }
 
-func (s *Store) GetUsers() ([]*domain.User, error) {
+func (s *Store) GetUsers() ([]*types.User, error) {
 	rows, err := s.db.Query(`SELECT id, email, password FROM users`)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 
-	var users []*domain.User
+	var users []*types.User
 	for rows.Next() {
-		var u domain.User
+		var u types.User
 		if err := rows.Scan(&u.ID, &u.Email, &u.Password); err != nil {
 			return nil, err
 		}
@@ -76,7 +76,7 @@ func (s *Store) GetUsers() ([]*domain.User, error) {
 	return users, rows.Err()
 }
 
-func (s *Store) UpdateUser(u domain.RegisterUserPayload, id int) error {
+func (s *Store) UpdateUser(u types.RegisterUserPayload, id int) error {
 	_, err := s.db.Exec(`UPDATE users SET email=$1, password=$2 WHERE id=$3`, u.Email, u.Password, id)
 	return err
 }
@@ -86,8 +86,8 @@ func (s *Store) DeleteUser(id int) error {
 	return err
 }
 
-func scanRowsIntoUser(rows *sql.Rows) (*domain.User, error) {
-	user := new(domain.User)
+func scanRowsIntoUser(rows *sql.Rows) (*types.User, error) {
+	user := new(types.User)
 
 	err := rows.Scan(
 		&user.ID,

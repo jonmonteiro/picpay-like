@@ -4,13 +4,9 @@ import (
 	"database/sql"
 	"log"
 	"net/http"
-
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
-
-	userHandler "github.com/jmonteiro/picpay-like/core/handler/user"
-	userRepo "github.com/jmonteiro/picpay-like/core/repository/user"
-	userService "github.com/jmonteiro/picpay-like/core/service/user"
+	user "github.com/jmonteiro/picpay-like/core/domain/user"
 )
 
 type APIServer struct {
@@ -36,9 +32,9 @@ func (s *APIServer) Run() error {
 	r.Route("/api/v1", func(api chi.Router) {
 
 		// ===== USER =====
-		userStore := userRepo.NewStore(s.db)
-		userSvc := userService.NewUserService(userStore)
-		userHdlr := userHandler.NewHandler(userSvc)
+		userStore := user.NewStore(s.db)
+		userSvc := user.NewUserService(userStore)
+		userHdlr := user.NewHandler(userSvc, userStore)
 		userHdlr.RegisterRoutes(api)
 
 		// ===== WALLET =====
