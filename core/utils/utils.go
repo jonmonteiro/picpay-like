@@ -4,9 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-
 	"github.com/go-playground/validator"
-	
 )
 
 var Validate = validator.New()
@@ -34,6 +32,10 @@ func GetTokenFromRequest(r *http.Request) string {
 	tokenQuery := r.URL.Query().Get("token")
 
 	if tokenAuth != "" {
+		// Remove o prefixo "Bearer " do token
+		if len(tokenAuth) > 7 && tokenAuth[:7] == "Bearer " {
+			return tokenAuth[7:]
+		}
 		return tokenAuth
 	}
 
@@ -43,5 +45,3 @@ func GetTokenFromRequest(r *http.Request) string {
 
 	return ""
 }
-
-
