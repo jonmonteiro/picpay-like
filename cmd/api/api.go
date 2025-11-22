@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"log"
 	"net/http"
+
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/jmonteiro/picpay-like/core/domain/user"
@@ -32,15 +33,17 @@ func (s *APIServer) Run() error {
 
 	r.Route("/api/v1", func(api chi.Router) {
 
-		// ===== USER =====
-		userStore := user.NewStore(s.db)
-		userSvc := user.NewUserService(userStore)
-		userHdlr := user.NewHandler(userSvc)
-		userHdlr.RegisterRoutes(api)
-
 		// ===== WALLET =====
 		walletStore := wallet.NewStore(s.db)
 		walletService := wallet.NewWalletService(walletStore)
+
+		// ===== USER =====
+		userStore := user.NewStore(s.db)
+		userSvc := user.NewUserService(userStore, walletStore)
+		userHdlr := user.NewHandler(userSvc)
+		userHdlr.RegisterRoutes(api)
+
+		// ===== WALLET ROUTES =====
 		walletHdlr := wallet.NewHandler(userStore, walletService)
 		walletHdlr.RegisterRoutes(api)
 
