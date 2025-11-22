@@ -2,9 +2,8 @@ package user
 
 import (
 	"fmt"
-
 	"github.com/jmonteiro/picpay-like/core/config"
-	"github.com/jmonteiro/picpay-like/core/domain/auth"
+	middelware "github.com/jmonteiro/picpay-like/core/middleware/auth"
 	"github.com/jmonteiro/picpay-like/core/types"
 )
 
@@ -24,7 +23,7 @@ func (s *UserService) RegisterUser(payload types.RegisterUserPayload) error {
 		return fmt.Errorf("user with email %s already exists", payload.Email)
 	}
 
-	hashedPassword, err := auth.HashPassword(payload.Password)
+	hashedPassword, err := middelware.HashPassword(payload.Password)
 	if err != nil {
 		return fmt.Errorf("failed to hash password: %w", err)
 	}
@@ -48,12 +47,12 @@ func (s *UserService) LoginUser(payload types.LoginUserPayload) (string, error) 
 		return "", fmt.Errorf("invalid email or password")
 	}
 
-	if !auth.ComparePasswords(u.Password, []byte(payload.Password)) {
+	if !middelware.ComparePasswords(u.Password, []byte(payload.Password)) {
 		return "", fmt.Errorf("invalid email or password")
 	}
 
 	secret := []byte(config.Envs.JWTSecret)
-	token, err := auth.CreateJWT(secret, int(u.ID))
+	token, err := middelware.CreateJWT(secret, int(u.ID))
 	if err != nil {
 		return "", fmt.Errorf("failed to create token: %w", err)
 	}
@@ -91,7 +90,7 @@ func (s *UserService) UpdateUser(id int, payload types.RegisterUserPayload) erro
 		return fmt.Errorf("user not found: %w", err)
 	}
 
-	hashedPassword, err := auth.HashPassword(payload.Password)
+	hashedPassword, err := middelware.HashPassword(payload.Password)
 	if err != nil {
 		return fmt.Errorf("failed to hash password: %w", err)
 	}
